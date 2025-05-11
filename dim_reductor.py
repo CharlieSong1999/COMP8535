@@ -1,4 +1,5 @@
-from sklearn.manifold import LocallyLinearEmbedding
+from sklearn.manifold import LocallyLinearEmbedding, Isomap, SpectralEmbedding, TSNE, MDS
+from sklearn.decomposition import PCA, KernelPCA
 from sklearn.preprocessing import StandardScaler
 
 
@@ -13,6 +14,18 @@ def get_scaler(scaler:str):
 def get_embedding(embedding:str, n_neighbors:int, n_components:int):
     if embedding == 'LocallyLinearEmbedding':
         return LocallyLinearEmbedding(n_neighbors=n_neighbors, n_components=n_components)
+    elif embedding == 'Isomap':
+        return Isomap(n_neighbors=n_neighbors, n_components=n_components)
+    elif embedding == 'SpectralEmbedding':
+        return SpectralEmbedding(n_components=n_components, n_neighbors=n_neighbors)
+    elif embedding == 'TSNE':
+        return TSNE(n_components=n_components)
+    elif embedding == 'MDS':
+        return MDS(n_components=n_components)
+    elif embedding == 'PCA':
+        return PCA(n_components=n_components)
+    elif embedding == 'KernelPCA':
+        return KernelPCA(n_components=n_components, kernel='rbf', gamma=0.01)
     else:
         raise ValueError(f"Embedding {embedding} is not supported. Please use 'LocallyLinearEmbedding'.")
 
