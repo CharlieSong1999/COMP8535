@@ -11,6 +11,27 @@ import cv2
 import huggingface_hub
 huggingface_hub.constants.HF_HUB_HTTP_TIMEOUT = 60
 
+def is_pil_image(img):
+    return isinstance(img, Image.Image)
+
+def pil_to_cv2(pil_img):
+    """
+    Convert a PIL.Image to a cv2-style numpy array (BGR).
+    """
+    rgb = pil_img.convert("RGB")  # Ensure it's in RGB mode
+    np_img = np.array(rgb)        # shape: (H, W, 3), RGB
+    cv_img = cv2.cvtColor(np_img, cv2.COLOR_RGB2BGR)  # Convert to BGR
+    return cv_img
+
+def ensure_cv2_format(image):
+    """
+    If image is a PIL.Image, convert to OpenCV format.
+    Otherwise, return as is.
+    """
+    if isinstance(image, Image.Image):
+        return pil_to_cv2(image)
+    return image
+
 class FeatureExtractor:
 
     def __init__(self, model_name: str, **kwargs):
@@ -127,11 +148,11 @@ class DINOv2FeatureExtractor(FeatureExtractor):
             if self.layer_id is not None:
                 feat = self.activations[self.layer_id] # (1, seq_len, dim)
                 feat = feat[:, 1:, :]  # Remove CLS token
+                feat = feat.flatten(start_dim=1)
             else:
                 feat = feature
-                feat = feat[:, 1:, :]  # Remove CLS token
             
-            feature = feat.flatten(start_dim=1) # (1, seq_len*dim)
+            feature = feat # (1, seq_len*dim)
             
             features.append(feature.cpu().numpy())
         return np.stack(features, axis=0).squeeze(1)  # (N, seq_len*dim)
@@ -333,7 +354,7 @@ class SAMFeatureExtractor(FeatureExtractor):
         features = []
         for image in tqdm(images, desc="Extracting features with SAM"):
             # Apply the transformations to the image
-            image = cv2.cvtColor(cv2.imread(image), cv2.COLOR_BGR2RGB) if path else image
+            image = cv2.cvtColor(cv2.imread(image), cv2.COLOR_BGR2RGB) if path else ensure_cv2_format(image)
             self.model.set_image(image)
             # Pass the image through the model to get features
             with torch.no_grad():
