@@ -86,6 +86,11 @@ python .\quantitizer.py --embedding PCA --folder_path ..\Case\render ..\Desk_foo
 | DeiT | 0.3454608094 | 0.2722028005 | 0.6864571678 | 0.7316427498 | 0.5089408819 |
 | SAM | **0.5161895883** | **0.4358792155** | <ins>0.7496740198</ins> | **0.8215865546** | **0.6308323445** |
 
+# Quantitize reducted features per-layer with DINOv2
+
+![](./fig/DINOv2_per_ViT_layers.png)
+
+
 # Low-level perturbation
 
 ```bash
