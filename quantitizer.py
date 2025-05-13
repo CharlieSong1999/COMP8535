@@ -50,7 +50,7 @@ def get_args():
     parser.add_argument("--folder_path", required=True, help="Path to the folder containing images", action='append', nargs='+')
     # parser.add_argument("--save_path", type=str, default=None, help="Path to save the visualization")
     parser.add_argument("--model_name", help="Vision models", action='append', nargs='+')
-    parser.add_argument("--embedding", type=str, default="LocallyLinearEmbedding", help="Dimensionality reduction method")
+    parser.add_argument("--embedding", type=str, default="LLE", help="Dimensionality reduction method")
     parser.add_argument("--scaler", type=str, default="None", help="Scaler to use for feature scaling")
     parser.add_argument("--checkpoint_path", type=str, default=None, help="Path to the model checkpoint")
     parser.add_argument("--metrics", help="Metrics to use for evaluation", action='append', nargs='+')
@@ -128,6 +128,7 @@ if __name__ == "__main__":
 
             Records.append(a_record)
 
+            del model
             torch.cuda.empty_cache()
             gc.collect()
     

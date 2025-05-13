@@ -12,7 +12,7 @@ def get_scaler(scaler:str):
         raise ValueError(f"Scaler {scaler} is not supported. Please use 'StandardScaler'.")
     
 def get_embedding(embedding:str, n_neighbors:int, n_components:int):
-    if embedding == 'LocallyLinearEmbedding':
+    if embedding == 'LLE':
         return LocallyLinearEmbedding(n_neighbors=n_neighbors, n_components=n_components)
     elif embedding == 'Isomap':
         return Isomap(n_neighbors=n_neighbors, n_components=n_components)

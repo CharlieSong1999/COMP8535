@@ -5,36 +5,6 @@ from sklearn.manifold import trustworthiness
 from sklearn.neighbors import NearestNeighbors
 
 
-
-# Assume you have:
-# angles: shape (n_samples,) → scalar angle for each image
-# embeddings: shape (n_samples, 2) → LLE/t-SNE/PCA embedding
-
-# Compute pairwise distances
-# gt_dists = squareform(pdist(angles[:, None], metric='euclidean'))  # ground-truth distance matrix
-# embed_dists = squareform(pdist(embeddings, metric='euclidean'))    # embedded distance matrix
-
-# # Flatten upper triangle for correlation
-# gt_vec = gt_dists[np.triu_indices_from(gt_dists, k=1)]
-# embed_vec = embed_dists[np.triu_indices_from(embed_dists, k=1)]
-
-# # Correlation (Spearman or Pearson)
-# spearman_corr, _ = spearmanr(gt_vec, embed_vec)
-# pearson_corr, _ = pearsonr(gt_vec, embed_vec)
-
-# print(f"Spearman: {spearman_corr:.3f}, Pearson: {pearson_corr:.3f}")
-
-
-
-# # Original feature vectors: here use scalar angles
-# X = angles[:, None]
-# X_embed = embeddings
-
-# # Trustworthiness (sklearn only supports this, not continuity)
-# trust = trustworthiness(X, X_embed, n_neighbors=5)
-# print(f"Trustworthiness: {trust:.3f}")
-
-
 def continuity(X, X_embed, n_neighbors=5):
     nn_orig = NearestNeighbors(n_neighbors=n_neighbors).fit(X)
     nn_embed = NearestNeighbors(n_neighbors=n_neighbors).fit(X_embed)

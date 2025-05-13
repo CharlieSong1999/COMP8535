@@ -71,6 +71,22 @@ class DINOv2FeatureExtractor(FeatureExtractor):
     def __init__(self, **kwargs):
         super().__init__('dinov2', **kwargs)
         self.model = self.load_model()
+
+        if 'layer_id' in kwargs:
+            self.layer_id = kwargs['layer_id']
+            print(f"Using layer {self.layer_id} for DINOv2 feature extraction.")
+        else:
+            self.layer_id = None
+        
+        self.activations = {}
+
+        if self.layer_id is not None:
+            self.model.blocks[self.layer_id].register_forward_hook(self._get_hook(self.layer_id))
+    
+    def _get_hook(self, layer_id):
+        def hook(module, input, output):
+            self.activations[layer_id] = output.detach()
+        return hook
     
     def load_model(self):
         """
@@ -107,8 +123,18 @@ class DINOv2FeatureExtractor(FeatureExtractor):
             # Pass the image through the model to get features 
             with torch.no_grad():
                 feature = self.model(image_tensor) # (1, 1536)
+
+            if self.layer_id is not None:
+                feat = self.activations[self.layer_id] # (1, seq_len, dim)
+                feat = feat[:, 1:, :]  # Remove CLS token
+            else:
+                feat = feature
+                feat = feat[:, 1:, :]  # Remove CLS token
+            
+            feature = feat.flatten(start_dim=1) # (1, seq_len*dim)
+            
             features.append(feature.cpu().numpy())
-        return np.stack(features, axis=0).squeeze(1)  # (N, 1536)
+        return np.stack(features, axis=0).squeeze(1)  # (N, seq_len*dim)
         
 
 class StableDiffusionFeatureExtractor(FeatureExtractor):
@@ -332,7 +358,12 @@ class FeatureExtractorFactory:
         """
         if model_name == 'identity':
             return IdentityFeatureExtractor(**kwargs)
-        elif model_name == 'dinov2':
+        elif model_name.startswith('dinov2'):
+            if '-' in model_name:
+                tokens = model_name.split('-')
+                if len(tokens) == 3 and tokens[1] == 'layer':
+                    layer_id = int(tokens[2])
+                    kwargs['layer_id'] = layer_id
             return DINOv2FeatureExtractor(**kwargs)
         elif model_name == 'stable_diffusion':
             return StableDiffusionFeatureExtractor(**kwargs)
