@@ -1,6 +1,6 @@
  # Visualize reducted features
 
-lle with original images:
+<!-- lle with original images:
 ```bash
 python .\visualizer.py --folder_path desk --model_name identity --scaler StandardScaler
 ```
@@ -28,7 +28,13 @@ python .\visualizer.py --folder_path desk --model_name deit
 lle with sam (need to download the checkpoint from https://github.com/facebookresearch/segment-anything, vit-b)
 ```bash
 python .\visualizer.py --folder_path desk --model_name sam --checkpoint_path 'path/to/checkpoint_sam' 
+``` -->
+
+```bash
+python .\visualizer.py --embedding PCA --folder_path ..\room2\render --model_name identity dinov2 stable_diffusion clip deit sam --save_path ..\fig
 ```
+
+![PCA visualization](./fig/PCA_visualization_20250514_000647.png)
 
 # Quantitize reducted features
 
@@ -94,5 +100,13 @@ python .\quantitizer.py --embedding PCA --folder_path ..\Case\render ..\Desk_foo
 # Low-level perturbation
 
 ```bash
-python .\low_level_perturbation.py --folder_path ..\Case\render_perturbed --model_name sam dinov2 dinov2-layer-0 dinov2-layer-4 dinov2-layer-9 dinov2-layer-14 dinov2-layer-19 dinov2-layer-24 dinov2-layer-29 dinov2-layer-34 dinov2-layer-39 --save_path ..\fig
+python .\low_level_perturbation_2D.py --folder_path ..\Case\render --model_name sam dinov2 dinov2-layer-0 dinov2-layer-4 dinov2-layer-9 dinov2-layer-14 dinov2-layer-19 dinov2-layer-24 dinov2-layer-29 dinov2-layer-34 dinov2-layer-39 --save_path ..\fig
 ```
+
+![](./fig/perturbation_sensitivity_2025-05-13_23-12-39.png)
+
+```bash
+python .\low_level_perturbation_3D.py --folder_path ..\Case\render_perturbed --model_name sam dinov2 dinov2-layer-0 dinov2-layer-4 dinov2-layer-9 dinov2-layer-14 dinov2-layer-19 dinov2-layer-24 dinov2-layer-29 dinov2-layer-34 dinov2-layer-39 --save_path ..\fig
+```
+
+![](./fig/perturbation_sensitivity_2025-05-13_23-44-15.png)

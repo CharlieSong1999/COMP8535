@@ -73,7 +73,7 @@ def measure_feature_change(model, image_paths, perturb_fn, path=True):
     perturbed_feats = torch.tensor(perturbed_feats)
     
     # cosine similarity between corresponding features
-    similarities = cosine_similarity(original_feats, perturbed_feats, dim=1)
+    similarities = cosine_similarity(original_feats, perturbed_feats, dim=0)
     return similarities.mean().item()
 
 
