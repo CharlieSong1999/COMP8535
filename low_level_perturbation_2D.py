@@ -65,16 +65,30 @@ def measure_feature_change(model, image_paths, perturb_fn, path=True):
         original_images.append(image)
         perturbed_images.append(perturbed)
 
-    original_feats = model.extract_features(original_images, path=False)
-    perturbed_feats = model.extract_features(perturbed_images, path=False)
+    original_feats = model.extract_features(original_images, path=False, flatten=False)
+    perturbed_feats = model.extract_features(perturbed_images, path=False, flatten=False)
 
     # np.ndarray -> torch.Tensor
     original_feats = torch.tensor(original_feats)
     perturbed_feats = torch.tensor(perturbed_feats)
+
+    # print the shape
+    print(f"Original features shape: {original_feats.shape}")
+    print(f"Perturbed features shape: {perturbed_feats.shape}")
+
+    if len(original_feats.shape) == 2:
+        original_feats = original_feats.unsqueeze(1) # shape (N, D) -> (N, 1, D)
+        perturbed_feats = perturbed_feats.unsqueeze(1) # shape (N, D) -> (N, 1, D)
     
     # cosine similarity between corresponding features
-    similarities = cosine_similarity(original_feats, perturbed_feats, dim=0)
-    return similarities.mean().item()
+    similarities = cosine_similarity(original_feats, perturbed_feats, dim=2) # shape (N, M, D) -> (N, M) where N is the batch size and M is the number of features
+    # mean along dim=1
+    similarities = similarities.mean(dim=1).mean(dim=0) # shape (N, D) -> (N,) -> scalar
+
+    # print the shape
+    # print(f"Similarities shape: {similarities.shape}")
+
+    return similarities
 
 
 def get_args():
@@ -131,14 +145,16 @@ if __name__ == "__main__":
     now = datetime.now()
     date_time = now.strftime("%Y-%m-%d_%H-%M-%S")
 
+    for model_name, similarity in modelName_2_sim.items():
+        print(f"Model: {model_name}, Similarity: {similarity}")
+
     model_names = list(modelName_2_sim.keys())
-    similarities = np.mean([modelName_2_sim[model_name] for model_name in model_names], axis=1)
+    similarities = [modelName_2_sim[model_name].item() for model_name in model_names]
 
     if save_path:
         np.save(os.path.join(save_path, f"perturbation_sensitivity_{date_time}.npy"), similarities)
 
-    for model_name, similarity in modelName_2_sim.items():
-        print(f"Model: {model_name}, Similarity: {similarity}")
+    
 
 
 

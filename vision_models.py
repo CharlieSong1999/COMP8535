@@ -72,7 +72,7 @@ class IdentityFeatureExtractor(FeatureExtractor):
         
         return IdentityModel()
     
-    def extract_features(self, images, path=True):
+    def extract_features(self, images, path=True, flatten=True):
         """
         Extract features using the identity model.
         
@@ -82,8 +82,13 @@ class IdentityFeatureExtractor(FeatureExtractor):
         features = []
         if path:
             for image in tqdm(images, desc="Loading images"):
-                image = Image.open(image).convert("L").resize((512, 512))
-                features.append(np.array(image).flatten())  # 展平成一维
+                
+                if flatten:
+                    image = Image.open(image).convert("L").resize((512, 512))
+                    features.append(np.array(image).flatten())  # 展平成一维
+                else:
+                    image = Image.open(image).resize((512, 512))
+                    features.append(np.array(image))
 
         return np.stack(features,axis=0)
     
@@ -119,7 +124,7 @@ class DINOv2FeatureExtractor(FeatureExtractor):
         return dinov2_model
         
     
-    def extract_features(self, images, path=True):
+    def extract_features(self, images, path=True, flatten=True):
         """
         Extract features using the DINOv2 model.
         
@@ -147,15 +152,26 @@ class DINOv2FeatureExtractor(FeatureExtractor):
 
             if self.layer_id is not None:
                 feat = self.activations[self.layer_id] # (1, seq_len, dim)
-                feat = feat[:, 1:, :]  # Remove CLS token
-                feat = feat.flatten(start_dim=1)
+                feat = feat[:, 1:, :]  # Remove CLS token (1, 1370, 1536) -> (1, 1369 (37*37), 1536)
+                feat = feat.squeeze(0)  # Remove batch dimension (1, 1369, 1536) -> (1369, 1536)
+                # print(f"Feature shape: {feat.shape}")
             else:
-                feat = feature
+                feat = feature.squeeze(0)  # Remove batch dimension (1, 1536) -> (1536,)
             
-            feature = feat # (1, seq_len*dim)
+            if flatten:
+                feature = feat.flatten().cpu()
+            else:
+                if len(feat.shape) == 2:
+                    feature = feat.unsqueeze(1)
+                feature = feat 
+
+            # print(f"Feature shape: {feature.shape}")
             
-            features.append(feature.cpu().numpy())
-        return np.stack(features, axis=0).squeeze(1)  # (N, seq_len*dim)
+            features.append(feature.cpu())
+        
+        features = np.array(features)
+        
+        return features  # (N, 1536) or (N, 1369*1536) or (N, 1369, 1536)
         
 
 class StableDiffusionFeatureExtractor(FeatureExtractor):
@@ -184,7 +200,7 @@ class StableDiffusionFeatureExtractor(FeatureExtractor):
         return vae
         
     
-    def extract_features(self, images, path=True):
+    def extract_features(self, images, path=True, flatten=True):
         """
         Extract features using the Stable Diffusion model.
         
@@ -211,7 +227,11 @@ class StableDiffusionFeatureExtractor(FeatureExtractor):
                 latents = self.model.encode(image_tensor).latent_dist.sample() # (1, 4, 64, 64)
                 latents = 0.18215 * latents # scale per SD paper
                 # pooled = torch.nn.functional.adaptive_avg_pool2d(latents, (1, 1)) # (1, 4, 1, 1)
-            features.append(latents.flatten().cpu().numpy()) # (4,)
+
+            if flatten:
+                features.append(latents.flatten().cpu().numpy()) # (4,)
+            else:
+                features.append(latents.permute(0, 2, 3, 1).reshape(-1, 4).cpu().numpy()) # (64*64, 4)
         return np.stack(features, axis=0)
     
 
@@ -236,7 +256,7 @@ class CLIPFeatureExtractor(FeatureExtractor):
 
         return model
         
-    def extract_features(self, images, path=True):
+    def extract_features(self, images, path=True, flatten=True):
         """
         Extract features using the CLIP model.
         
@@ -284,7 +304,7 @@ class DeitFeatureExtractor(FeatureExtractor):
         model.eval()
         return model
 
-    def extract_features(self, images, path=True):
+    def extract_features(self, images, path=True, flatten=True):
         """
         Extract features using the Deit model.
         
@@ -307,7 +327,10 @@ class DeitFeatureExtractor(FeatureExtractor):
             with torch.no_grad():
                 outputs = self.model(**inputs)
                 if hasattr(outputs, "last_hidden_state"):
-                    feat = outputs.last_hidden_state[:, 1:, :].flatten().cpu().numpy()  #other than CLS token
+                    if flatten:
+                        feat = outputs.last_hidden_state[:, :, :].flatten().cpu().numpy()  #other than CLS token
+                    else:
+                        feat = outputs.last_hidden_state[:, 1:-1, :].cpu().numpy() # (1, 196, 768) 0: CLS token, -1: Distillation token
                 else:
                     raise ValueError("模型输出格式不正确")
             
@@ -341,7 +364,7 @@ class SAMFeatureExtractor(FeatureExtractor):
         sam = sam_model_registry[model_type](checkpoint=sam_checkpoint).to(device)
         return SamPredictor(sam)
     
-    def extract_features(self, images, path=True):
+    def extract_features(self, images, path=True, flatten=True):
         """
         Extract features using the SAM model.
         
@@ -358,9 +381,15 @@ class SAMFeatureExtractor(FeatureExtractor):
             self.model.set_image(image)
             # Pass the image through the model to get features
             with torch.no_grad():
-                feature = self.model.get_image_embedding().cpu().numpy()
+                feature = self.model.get_image_embedding().cpu()
                 features.append(feature.squeeze())
-        return np.stack(features, axis=0).reshape(len(features), -1)  # (N, 256*64*64)
+        
+        if flatten:
+            features = np.array([feature.flatten() for feature in features])
+        else:
+            features = np.array([feature.permute(1,2,0).reshape(-1,256) for feature in features])
+
+        return features  # (N, 64*64, 256) or (N, 256*64*64)
     
 
 class FeatureExtractorFactory:

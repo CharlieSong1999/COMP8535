@@ -112,3 +112,9 @@ python .\low_level_perturbation_3D.py --folder_path ..\Case\render_perturbed --m
 ```
 
 ![](./fig/perturbation_sensitivity_2025-05-13_23-44-15.png)
+
+# Angle predictability
+
+```bash
+python .\evaluate_angle_predictability.py --folder_path ..\Case\render_1 --model_name identity stable_diffusion clip deit sam dinov2 dinov2-layer-0 dinov2-layer-4 dinov2-layer-9 dinov2-layer-14 dinov2-layer-19 dinov2-layer-24 dinov2-layer-29 dinov2-layer-34 dinov2-layer-39 --save_path ..\fig
+```
