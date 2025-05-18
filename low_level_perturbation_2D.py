@@ -83,7 +83,7 @@ def measure_feature_change(model, image_paths, perturb_fn, path=True):
     # cosine similarity between corresponding features
     similarities = cosine_similarity(original_feats, perturbed_feats, dim=2) # shape (N, M, D) -> (N, M) where N is the batch size and M is the number of features
     # mean along dim=1
-    similarities = similarities.mean(dim=1).mean(dim=0) # shape (N, D) -> (N,) -> scalar
+    similarities = similarities.mean(dim=1) # shape (N, D) -> (N,)
 
     # print the shape
     # print(f"Similarities shape: {similarities.shape}")
@@ -149,17 +149,15 @@ if __name__ == "__main__":
         print(f"Model: {model_name}, Similarity: {similarity}")
 
     model_names = list(modelName_2_sim.keys())
-    similarities = [modelName_2_sim[model_name].item() for model_name in model_names]
+    similarities = [modelName_2_sim[model_name] for model_name in model_names]
+    similarities = np.squeeze(np.array(similarities), axis=1)  # shape (N, 1, M) -> (N,M) where N is the number of models and M is the number of images
+
 
     if save_path:
         np.save(os.path.join(save_path, f"perturbation_sensitivity_{date_time}.npy"), similarities)
 
-    
-
-
-
     plt.figure(figsize=(10, 6))
-    plt.plot(model_names, similarities, marker='o', linestyle='-', linewidth=2,)
+    plt.boxplot(similarities.T, labels=model_names, patch_artist=True)
     plt.xticks(rotation=45)
     plt.xlabel("Model / Layer")
     plt.ylabel("Cosine Similarity (Original vs Perturbed)")

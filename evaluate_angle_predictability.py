@@ -355,10 +355,10 @@ if __name__ == "__main__":
         np.save(os.path.join(save_path, f"angle_pred_{date_time}.npy"), similarities)
 
     plt.figure(figsize=(10, 6))
-    plt.plot(model_names, similarities, marker='o', linestyle='-', linewidth=2,)
+    plt.bar(model_names, similarities)
     plt.xticks(rotation=45)
     plt.xlabel("Model / Layer")
-    plt.ylabel("Angle Predictability (R² Score)")
+    plt.ylabel("Angle Predictability (Error in degrees)")
     plt.title("Angle Predictability of Different Models")
     # plt.ylim(0, 1)
     plt.grid(True)

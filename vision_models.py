@@ -81,7 +81,7 @@ class IdentityFeatureExtractor(FeatureExtractor):
         """
         features = []
         if path:
-            for image in tqdm(images, desc="Loading images"):
+            for image in tqdm(images, desc="Loading images (identity)"):
                 
                 if flatten:
                     image = Image.open(image).convert("L").resize((512, 512))
@@ -89,6 +89,15 @@ class IdentityFeatureExtractor(FeatureExtractor):
                 else:
                     image = Image.open(image).resize((512, 512))
                     features.append(np.array(image))
+        else:
+            for image in tqdm(images, desc="Loading images (identity)"):
+                if flatten:
+                    features.append(image.flatten())
+                else:
+                    features.append(np.array(image, dtype=np.float32).reshape(-1, 3)) # for low-level perturbation
+        
+        features = np.array(features)
+        # print(f"Feature shape: {features.shape}")
 
         return np.stack(features,axis=0)
     

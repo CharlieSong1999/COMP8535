@@ -102,19 +102,21 @@ Full data: https://docs.google.com/spreadsheets/d/1mw0KEf0RTXP8W9ieeRIQ9q8a0unjl
 # Low-level perturbation
 
 ```bash
-python .\low_level_perturbation_2D.py --folder_path ..\Case\render --model_name sam dinov2 dinov2-layer-0 dinov2-layer-4 dinov2-layer-9 dinov2-layer-14 dinov2-layer-19 dinov2-layer-24 dinov2-layer-29 dinov2-layer-34 dinov2-layer-39 --save_path ..\fig
+python .\low_level_perturbation_2D.py --folder_path ..\Case\render_1 --model_name identity stable_diffusion clip deit sam dinov2 dinov2-layer-0 dinov2-layer-4 dinov2-layer-9 dinov2-layer-14 dinov2-layer-19 dinov2-layer-24 dinov2-layer-29 dinov2-layer-34 dinov2-layer-39  --save_path ..\fig
 ```
 
-![](./fig/perturbation_sensitivity_2025-05-13_23-12-39.png)
+![](./fig/perturbation_sensitivity.png)
 
 ```bash
 python .\low_level_perturbation_3D.py --folder_path ..\Case\render_perturbed --model_name sam dinov2 dinov2-layer-0 dinov2-layer-4 dinov2-layer-9 dinov2-layer-14 dinov2-layer-19 dinov2-layer-24 dinov2-layer-29 dinov2-layer-34 dinov2-layer-39 --save_path ..\fig
 ```
 
-![](./fig/perturbation_sensitivity_2025-05-13_23-44-15.png)
+<!-- ![](./fig/perturbation_sensitivity_2025-05-13_23-44-15.png) -->
 
 # Angle predictability
 
 ```bash
 python .\evaluate_angle_predictability.py --folder_path ..\Case\render_1 --model_name identity stable_diffusion clip deit sam dinov2 dinov2-layer-0 dinov2-layer-4 dinov2-layer-9 dinov2-layer-14 dinov2-layer-19 dinov2-layer-24 dinov2-layer-29 dinov2-layer-34 dinov2-layer-39 --save_path ..\fig
 ```
+
+![](fig/angle_predictability.png)
