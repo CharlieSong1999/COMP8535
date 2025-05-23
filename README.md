@@ -1,3 +1,34 @@
+ # File organization
+
+ - dim_reductor.py:
+    - Implmentation of PCA, LLE, Isomap, and t-SNE.
+
+- metrics.py:
+    - Implmenetation of spearman, pearson, continuity, trustworthiness.
+
+- vision_models.py:
+    - Implementation of vision models.
+
+- visualizer.py:
+    - Visualize the results of PCA, LLE, Isomap, and t-SNE.
+    - [Visualize reducted features](#visualize-reducted-features)
+
+- quantitizer.py
+    - Evaluating the results of PCA, LLE, Isomap, and t-SNE with metrics (spearman, pearson, continuity, trustworthiness).
+    - [Quantitize reducted features](#quantitize-reducted-features)
+
+- low_level_perturbation_2D.py
+    - Evaluating the sensitivity of vision models with random perturbations.
+    - [Low-level perturbation](#low-level-perturbation)
+
+- evaluate_angle_predictability.py
+    - Evaluate the angle predictability with vision models.
+    - [Angle predictability](#angle-predictability)
+
+# Data
+
+Data available at https://drive.google.com/file/d/1lwpkNH9gYEBRwzYE6XU6Jx8qZXGnbl5m/view?usp=drive_link
+ 
  # Visualize reducted features
 
 <!-- lle with original images:
@@ -31,7 +62,7 @@ python .\visualizer.py --folder_path desk --model_name sam --checkpoint_path 'pa
 ``` -->
 
 ```bash
-python .\visualizer.py --embedding PCA --folder_path ..\room2\render --model_name identity dinov2 stable_diffusion clip deit sam --save_path ..\fig
+python .\visualizer.py --embedding PCA --folder_path path/to/data --model_name identity dinov2 stable_diffusion clip deit sam --save_path ..\fig
 ```
 
 ![PCA visualization](./fig/PCA_visualization_20250514_000647.png)
@@ -68,17 +99,17 @@ python .\visualizer.py --embedding PCA --folder_path ..\room2\render --model_nam
 
 PCA with different vision models and metrics on different data
 ```bash
-python .\quantitizer.py --embedding PCA --folder_path ..\Case\render ..\Desk_food\render ..\Excavator\render ..\Rhino\render ..\room2\render desk room --model_name identity dinov2 stable_diffusion clip deit sam --metrics spearman_correlation pearson_correlation continuity trustworthiness
+python .\quantitizer.py --embedding PCA --folder_path path/to/data ..\Desk_food\render ..\Excavator\render ..\Rhino\render ..\room2\render desk room --model_name identity dinov2 stable_diffusion clip deit sam --metrics spearman_correlation pearson_correlation continuity trustworthiness
 ```
 
 T-SNE with different vision models and metrics on different data
 ```bash
-python .\quantitizer.py --embedding TSNE --folder_path ..\Case\render ..\Desk_food\render ..\Excavator\render ..\Rhino\render ..\room2\render desk room --model_name identity dinov2 stable_diffusion clip deit sam --metrics spearman_correlation pearson_correlation continuity trustworthiness
+python .\quantitizer.py --embedding TSNE --folder_path path/to/data ..\Desk_food\render ..\Excavator\render ..\Rhino\render ..\room2\render desk room --model_name identity dinov2 stable_diffusion clip deit sam --metrics spearman_correlation pearson_correlation continuity trustworthiness
 ```
 
 PCA with different dinov2 with different layers and metrics on different data
 ```bash
-python .\quantitizer.py --embedding PCA --folder_path ..\Case\render ..\Desk_food\render ..\Excavator\render ..\Rhino\render ..\room2\render desk room --model_name dinov2-layer-4 --metrics spearman_correlation pearson_correlation continuity trustworthiness
+python .\quantitizer.py --embedding PCA --folder_path path/to/data ..\Desk_food\render ..\Excavator\render ..\Rhino\render ..\room2\render desk room --model_name dinov2-layer-4 --metrics spearman_correlation pearson_correlation continuity trustworthiness
 ```
 
 ## Results
@@ -102,21 +133,21 @@ Full data: https://docs.google.com/spreadsheets/d/1mw0KEf0RTXP8W9ieeRIQ9q8a0unjl
 # Low-level perturbation
 
 ```bash
-python .\low_level_perturbation_2D.py --folder_path ..\Case\render_1 --model_name identity stable_diffusion clip deit sam dinov2 dinov2-layer-0 dinov2-layer-4 dinov2-layer-9 dinov2-layer-14 dinov2-layer-19 dinov2-layer-24 dinov2-layer-29 dinov2-layer-34 dinov2-layer-39  --save_path ..\fig
+python .\low_level_perturbation_2D.py --folder_path path/to/data --model_name identity stable_diffusion clip deit sam dinov2 dinov2-layer-0 dinov2-layer-4 dinov2-layer-9 dinov2-layer-14 dinov2-layer-19 dinov2-layer-24 dinov2-layer-29 dinov2-layer-34 dinov2-layer-39  --save_path ..\fig
 ```
 
 ![](./fig/perturbation_sensitivity.png)
 
-```bash
+<!-- ```bash
 python .\low_level_perturbation_3D.py --folder_path ..\Case\render_perturbed --model_name sam dinov2 dinov2-layer-0 dinov2-layer-4 dinov2-layer-9 dinov2-layer-14 dinov2-layer-19 dinov2-layer-24 dinov2-layer-29 dinov2-layer-34 dinov2-layer-39 --save_path ..\fig
-```
+``` -->
 
 <!-- ![](./fig/perturbation_sensitivity_2025-05-13_23-44-15.png) -->
 
 # Angle predictability
 
 ```bash
-python .\evaluate_angle_predictability.py --folder_path ..\Case\render_1 --model_name identity stable_diffusion clip deit sam dinov2 dinov2-layer-0 dinov2-layer-4 dinov2-layer-9 dinov2-layer-14 dinov2-layer-19 dinov2-layer-24 dinov2-layer-29 dinov2-layer-34 dinov2-layer-39 --save_path ..\fig
+python .\evaluate_angle_predictability.py --folder_path path/to/data --model_name identity stable_diffusion clip deit sam dinov2 dinov2-layer-0 dinov2-layer-4 dinov2-layer-9 dinov2-layer-14 dinov2-layer-19 dinov2-layer-24 dinov2-layer-29 dinov2-layer-34 dinov2-layer-39 --save_path ..\fig
 ```
 
 ![](fig/angle_predictability.png)

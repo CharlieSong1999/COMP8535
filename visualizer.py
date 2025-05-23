@@ -46,46 +46,114 @@ def visualize(features, save_path=None, model_name=""):
     else:
         plt.show()
 
+# def visualize_models(args, features_dict, save_path=None):
+#     """
+#     可视化多个模型降维后的二维特征（如 PCA 或 LLE）。
+    
+#     :param args: argparse.Namespace, 命令行参数。
+#     :param features_dict: dict[str, np.ndarray], 每个键是模型名，每个值是形状为 (M, 2) 的降维特征。
+#     :param save_path: str or None，如果提供则保存图像，否则直接展示。
+#     """
+#     num_models = len(features_dict)
+#     cols = math.ceil(math.sqrt(num_models))
+#     rows = math.ceil(num_models / cols)
+
+#     fig, axes = plt.subplots(rows, cols, figsize=(cols * 5, rows * 5), squeeze=False)
+
+#     for idx, (model_name, features) in enumerate(features_dict.items()):
+#         r, c = divmod(idx, cols)
+#         ax = axes[r][c]
+
+#         scatter = ax.scatter(features[:, 0], features[:, 1], c=np.arange(len(features)), cmap='hsv')
+#         ax.set_title(f"{model_name}", fontsize=12)
+#         ax.set_xlabel("Component 1")
+#         ax.set_ylabel("Component 2")
+#         ax.axis("equal")
+#         ax.grid(True)
+
+#         # 添加颜色条
+#         cbar = fig.colorbar(scatter, ax=ax, fraction=0.046, pad=0.04)
+#         cbar.set_label("Image Index (Rotation Angle or Order)")
+
+#     # 移除多余的子图
+#     for idx in range(num_models, rows * cols):
+#         fig.delaxes(axes[idx // cols][idx % cols])
+
+#     plt.tight_layout()
+
+#     if save_path:
+#         date_time = datetime.now().strftime("%Y%m%d_%H%M%S")
+#         embedding = args.embedding
+#         save_path = os.path.join(save_path, f"{embedding}_visualization_{date_time}.png")
+#         plt.savefig(save_path, dpi=400)
+#     else:
+#         plt.show()
+
+modelName_visualize = {
+    'identity': 'Identity',
+    'sam': 'SAM',
+    'dinov2': 'DINOv2',
+    'deit': 'DeiT',
+    'stable_diffusion': 'Stable Diffusion',
+    'clip': 'CLIP',
+}
+
 def visualize_models(args, features_dict, save_path=None):
     """
-    可视化多个模型降维后的二维特征（如 PCA 或 LLE）。
-    
-    :param args: argparse.Namespace, 命令行参数。
-    :param features_dict: dict[str, np.ndarray], 每个键是模型名，每个值是形状为 (M, 2) 的降维特征。
-    :param save_path: str or None，如果提供则保存图像，否则直接展示。
+    可视化多个模型降维后的二维特征，符合 NeurIPS 要求：统一颜色条、无坐标轴刻度、清晰布局。
     """
+    # 全局字体设置（符合 NeurIPS 风格）
+    plt.rcParams.update({
+        "font.size": 10,
+        "axes.titlesize": 12,
+        "axes.labelsize": 10,
+        "xtick.labelsize": 9,
+        "ytick.labelsize": 9
+    })
+
     num_models = len(features_dict)
     cols = math.ceil(math.sqrt(num_models))
     rows = math.ceil(num_models / cols)
 
-    fig, axes = plt.subplots(rows, cols, figsize=(cols * 5, rows * 5), squeeze=False)
+    fig, axes = plt.subplots(rows, cols, figsize=(cols * 3.5, rows * 3.5), squeeze=False)
+
+    vmin, vmax = 0, max(len(f) for f in features_dict.values())
+    scatter_plots = []
 
     for idx, (model_name, features) in enumerate(features_dict.items()):
         r, c = divmod(idx, cols)
         ax = axes[r][c]
 
-        scatter = ax.scatter(features[:, 0], features[:, 1], c=np.arange(len(features)), cmap='hsv')
-        ax.set_title(f"{model_name}", fontsize=12)
-        ax.set_xlabel("Component 1")
-        ax.set_ylabel("Component 2")
+        scatter = ax.scatter(features[:, 0], features[:, 1],
+                             c=np.arange(len(features)), cmap='hsv', vmin=vmin, vmax=vmax, s=8)
+        scatter_plots.append(scatter)
+
+        ax.set_title(modelName_visualize.get(model_name, model_name), fontsize=12)
         ax.axis("equal")
         ax.grid(True)
 
-        # 添加颜色条
-        cbar = fig.colorbar(scatter, ax=ax, fraction=0.046, pad=0.04)
-        cbar.set_label("Image Index (Rotation Angle or Order)")
+        # 移除坐标轴标签和刻度
+        ax.set_xticks([])
+        ax.set_yticks([])
+        ax.set_xlabel("")
+        ax.set_ylabel("")
 
-    # 移除多余的子图
+    # 移除多余子图
     for idx in range(num_models, rows * cols):
         fig.delaxes(axes[idx // cols][idx % cols])
 
-    plt.tight_layout()
+    # 调整子图布局，预留右侧空间放 colorbar
+    fig.subplots_adjust(right=0.88)
+    cbar_ax = fig.add_axes([0.90, 0.15, 0.015, 0.7])  # [left, bottom, width, height]
+    cbar = fig.colorbar(scatter_plots[0], cax=cbar_ax)
+    cbar.set_label("Image Index (Rotation Angle)")
 
     if save_path:
+        os.makedirs(save_path, exist_ok=True)
         date_time = datetime.now().strftime("%Y%m%d_%H%M%S")
         embedding = args.embedding
         save_path = os.path.join(save_path, f"{embedding}_visualization_{date_time}.png")
-        plt.savefig(save_path, dpi=400)
+        plt.savefig(save_path, dpi=400, bbox_inches='tight')
     else:
         plt.show()
 
