@@ -127,7 +127,7 @@ python .\quantitizer.py --embedding PCA --folder_path path/to/data1 path/to/data
 ## Example of command
 
 ```bash
-python .\low_level_perturbation.py --folder_path path/to/data --model_name identity stable_diffusion clip deit sam dinov2 dinov2-layer-0 dinov2-layer-4 dinov2-layer-9 dinov2-layer-14 dinov2-layer-19 dinov2-layer-24 dinov2-layer-29 dinov2-layer-34 dinov2-layer-39  --save_path ..\fig
+python .\low_level_perturbation.py --folder_path path/to/data --model_name identity stable_diffusion clip deit sam dinov2 dinov2-layer-0 dinov2-layer-2 dinov2-layer-4 dinov2-layer-6 dinov2-layer-8 dinov2-layer-10 dinov2-layer-11 --save_path ..\fig
 ```
 
 ## Result
@@ -139,7 +139,7 @@ python .\low_level_perturbation.py --folder_path path/to/data --model_name ident
 
 ## Example of command
 ```bash
-python .\evaluate_angle_predictability.py --folder_path path/to/data --model_name identity stable_diffusion clip deit sam dinov2 dinov2-layer-0 dinov2-layer-4 dinov2-layer-9 dinov2-layer-14 dinov2-layer-19 dinov2-layer-24 dinov2-layer-29 dinov2-layer-34 dinov2-layer-39 --save_path ..\fig
+python .\evaluate_angle_predictability.py --folder_path path/to/data --model_name identity stable_diffusion clip deit sam dinov2 dinov2-layer-0 dinov2-layer-2 dinov2-layer-4 dinov2-layer-6 dinov2-layer-8 dinov2-layer-10 dinov2-layer-11 --save_path ..\fig
 ```
 
 ## Result
