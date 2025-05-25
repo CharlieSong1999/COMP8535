@@ -1,3 +1,15 @@
+ # Introduction
+
+This is the implementation of our project **"Viewpoint-aware Representation Analysis of Vision Foundation Models"** (ANU COMP8535 project). In particular, we implement four experiments
+- **Manifold analysis across models.** We apply PCA, LLE, Isomap, and t-SNE on features extracted by vision models, and evaluate the 3D structure preservation with global metrics (Spearman, Pearson correlation) and local structure metrics (continuity, trustworthiness).
+- **Layerwise analysis of DINOv2 representations.**
+    We apply PCA on features extracted by different layers of ViT-based models, and evaluate the 3D structure preservation with global metrics (Spearman, Pearson correlation) and local structure metrics (continuity, trustworthiness).
+- **Sensitivity to geometric perturbations.** We evaluate the cosine similarity of features extracted by vision models before and after we apply random geometric perturbations.
+- **Probing camera pose via nonlinear regression.**
+    We train a CNN or an MLP regressor to probe camera pose from features extracted by vision models.
+
+Our results show a clear divide: models trained with dense, pixel-wise supervision (e.g., SAM) tend to preserve local geometric structure and align well with pose-induced manifolds, while those trained with image-level objectives (e.g., DINOv2, CLIP) encode pose more explicitly and support accurate regression, but at the cost of geometric transparency. These encoding strategies are further shaped by depth: deeper layers increasingly favor global abstraction. Together, our findings highlight the importance of both supervision and architecture in shaping 3D-aware representations and call for future work on geometry-aware objectives and hybrid training paradigms that can unify structural fidelity with predictive precision.
+ 
  # File organization
 
  - dim_reductor.py:
@@ -19,47 +31,19 @@
 
 - low_level_perturbation_2D.py
     - Evaluating the sensitivity of vision models with random perturbations.
-    - [Low-level perturbation](#low-level-perturbation)
+    - [Sensitivity to geometric perturbations.](#sensitivity-to-geometric-perturbations)
 
 - evaluate_angle_predictability.py
     - Evaluate the angle predictability with vision models.
-    - [Angle predictability](#angle-predictability)
+    - [Probing camera pose via nonlinear regression.](#probing-camera-pose-via-nonlinear-regression)
 
 # Data
 
 Data available at https://drive.google.com/file/d/1lwpkNH9gYEBRwzYE6XU6Jx8qZXGnbl5m/view?usp=drive_link
  
- # Visualize reducted features
+ # Manifold analysis across models.
 
-<!-- lle with original images:
-```bash
-python .\visualizer.py --folder_path desk --model_name identity --scaler StandardScaler
-```
-
-lle with dinov2:
-```bash
-python .\visualizer.py --folder_path desk --model_name dinov2 
-```
-
-lle with stable_diffusion 
-```bash
-python .\visualizer.py --folder_path desk --model_name stable_diffusion 
-```
-
-lle with clip
-```bash
-python .\visualizer.py --folder_path desk --model_name clip 
-```
-
-lle with deit
-```bash
-python .\visualizer.py --folder_path desk --model_name deit 
-```
-
-lle with sam (need to download the checkpoint from https://github.com/facebookresearch/segment-anything, vit-b)
-```bash
-python .\visualizer.py --folder_path desk --model_name sam --checkpoint_path 'path/to/checkpoint_sam' 
-``` -->
+ ## Visualize reducted features
 
 ```bash
 python .\visualizer.py --embedding PCA --folder_path path/to/data --model_name identity dinov2 stable_diffusion clip deit sam --save_path ..\fig
@@ -67,18 +51,22 @@ python .\visualizer.py --embedding PCA --folder_path path/to/data --model_name i
 
 ![PCA visualization](./fig/PCA_visualization_20250514_000647.png)
 
-# Quantitize reducted features
+## Quantitize reducted features
 
-## Supported arguments
+### Supported arguments
 
 - model_name
     - identity: original images
     - dinov2
-        - dinov2-layer-0: image tokens from layer 0 of dinov2
+        - dinov2-vit_layer-0: image tokens from layer 0 of dinov2.
     - stable_diffusion
+        - Do not support specify layers
     - clip
+        - clip-vit_layer-1: image tokens from layer 1 of clip.
     - deit
+        - deit-vit_layer-2: image tokens from layer 2 of clip.
     - sam
+        - sam-vit_layer-3: image tokens from layer 3 of clip.
 
 - metrics:
     - spearman_correlation
@@ -99,7 +87,7 @@ python .\visualizer.py --embedding PCA --folder_path path/to/data --model_name i
 
 PCA with different vision models and metrics on different data
 ```bash
-python .\quantitizer.py --embedding PCA --folder_path path/to/data ..\Desk_food\render ..\Excavator\render ..\Rhino\render ..\room2\render desk room --model_name identity dinov2 stable_diffusion clip deit sam --metrics spearman_correlation pearson_correlation continuity trustworthiness
+python .\quantitizer.py --embedding PCA --folder_path path/to/data1 path/to/data2 --model_name identity dinov2 stable_diffusion clip deit sam --metrics spearman_correlation pearson_correlation continuity trustworthiness
 ```
 
 T-SNE with different vision models and metrics on different data
@@ -107,10 +95,7 @@ T-SNE with different vision models and metrics on different data
 python .\quantitizer.py --embedding TSNE --folder_path path/to/data ..\Desk_food\render ..\Excavator\render ..\Rhino\render ..\room2\render desk room --model_name identity dinov2 stable_diffusion clip deit sam --metrics spearman_correlation pearson_correlation continuity trustworthiness
 ```
 
-PCA with different dinov2 with different layers and metrics on different data
-```bash
-python .\quantitizer.py --embedding PCA --folder_path path/to/data ..\Desk_food\render ..\Excavator\render ..\Rhino\render ..\room2\render desk room --model_name dinov2-layer-4 --metrics spearman_correlation pearson_correlation continuity trustworthiness
-```
+
 
 ## Results
 
@@ -125,29 +110,37 @@ python .\quantitizer.py --embedding PCA --folder_path path/to/data ..\Desk_food\
 
 Full data: https://docs.google.com/spreadsheets/d/1mw0KEf0RTXP8W9ieeRIQ9q8a0unjllgue8j5YSoRr_M/edit?usp=sharing
 
-# Quantitize reducted features per-layer with DINOv2
+# Layerwise analysis of representations.
 
-![](./fig/DINOv2_per_ViT_layers.png)
+## Example of command
+PCA with different layers of deit and metrics on different data
+```bash
+python .\quantitizer.py --embedding PCA --folder_path path/to/data1 path/to/data2 --model_name deit-vit_layer-0 deit-vit_layer-2 deit-vit_layer-4 deit-vit_layer-6 deit-vit_layer-8 deit-vit_layer-10 deit --metrics spearman_correlation pearson_correlation continuity trustworthiness
+```
+
+## Result
+![](./fig/3d_structure_preservation.png)
 
 
-# Low-level perturbation
+# Sensitivity to geometric perturbations.
+
+## Example of command
 
 ```bash
-python .\low_level_perturbation_2D.py --folder_path path/to/data --model_name identity stable_diffusion clip deit sam dinov2 dinov2-layer-0 dinov2-layer-4 dinov2-layer-9 dinov2-layer-14 dinov2-layer-19 dinov2-layer-24 dinov2-layer-29 dinov2-layer-34 dinov2-layer-39  --save_path ..\fig
+python .\low_level_perturbation.py --folder_path path/to/data --model_name identity stable_diffusion clip deit sam dinov2 dinov2-layer-0 dinov2-layer-4 dinov2-layer-9 dinov2-layer-14 dinov2-layer-19 dinov2-layer-24 dinov2-layer-29 dinov2-layer-34 dinov2-layer-39  --save_path ..\fig
 ```
+
+## Result
 
 ![](./fig/perturbation_sensitivity.png)
 
-<!-- ```bash
-python .\low_level_perturbation_3D.py --folder_path ..\Case\render_perturbed --model_name sam dinov2 dinov2-layer-0 dinov2-layer-4 dinov2-layer-9 dinov2-layer-14 dinov2-layer-19 dinov2-layer-24 dinov2-layer-29 dinov2-layer-34 dinov2-layer-39 --save_path ..\fig
-``` -->
 
-<!-- ![](./fig/perturbation_sensitivity_2025-05-13_23-44-15.png) -->
+# Probing camera pose via nonlinear regression.
 
-# Angle predictability
-
+## Example of command
 ```bash
 python .\evaluate_angle_predictability.py --folder_path path/to/data --model_name identity stable_diffusion clip deit sam dinov2 dinov2-layer-0 dinov2-layer-4 dinov2-layer-9 dinov2-layer-14 dinov2-layer-19 dinov2-layer-24 dinov2-layer-29 dinov2-layer-34 dinov2-layer-39 --save_path ..\fig
 ```
 
+## Result
 ![](fig/angle_predictability.png)
